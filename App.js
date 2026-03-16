@@ -15,6 +15,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [news, setNews] = useState([]);
   const [error, setError] = useState("");
+  const [summary, setSummary] = useState("");
 
   useEffect(() => {
     fetch("https://hn.algolia.com/api/v1/search?tags=front_page")
@@ -57,21 +58,63 @@ export default function App() {
         keyExtractor={(item) => String(item.objectID)}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => item.url && Linking.openURL(item.url)}
-          >
-            <Text style={styles.cardTitle}>{item.title || "No title"}</Text>
-            <Text style={styles.meta}>{item.author || "unknown"}</Text>
-          </TouchableOpacity>
+          <View style={styles.card}>
+            <TouchableOpacity onPress={() => item.url && Linking.openURL(item.url)}>
+              <Text style={styles.cardTitle}>{item.title || "No title"}</Text>
+              <Text style={styles.meta}>{item.author || "unknown"}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.aiButton}
+              onPress={async () => {
+                const res = await fetch("http://loacalhost:5000/summary", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ title: item.title })
+                });
+
+                const data = await res.json();
+                setSummary(data.summary);
+              }}
+            >
+              <Text style={styles.aiText}>✨ AI Summary</Text>
+            </TouchableOpacity>
+          </View>
         )}
       />
+      {summary !== "" && (
+        <View style={styles.summaryBox}>
+          <Text style={{ fontWeight: "bold" }}>AI Summary</Text>
+          <Text>{summary}</Text>
+        </View>
+      )}
       <StatusBar style="auto" />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  aiButton: {
+    marginTop: 10,
+    backgroundColor: "#000",
+    padding: 6,
+    borderRadius: 6,
+    alignSelf: "flex-start"
+  },
+
+  aiText: {
+    color: "#fff",
+    fontSize: 12
+  },
+
+  summaryBox: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderTopWidth: 1,
+    borderColor: "#ddd"
+  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5"
