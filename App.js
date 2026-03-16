@@ -67,7 +67,7 @@ export default function App() {
             <TouchableOpacity
               style={styles.aiButton}
               onPress={async () => {
-                const res = await fetch("http://loacalhost:5000/summary", {
+                const res = await fetch("http://172.20.10.3:5000/summary", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json"

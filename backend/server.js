@@ -9,14 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 app.post("/summary", async (req, res) => {
   try {
     const { title } = req.body;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash"
+      model: "gemini-2.5-flash"
     });
 
     const result = await model.generateContent(
@@ -28,9 +28,13 @@ app.post("/summary", async (req, res) => {
     res.json({ summary: response.text() });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "AI failed" });
-  }
+      console.error(err);
+        if (err.status === 429) {
+            return res.json({ summary: "Rate limit reached. Try again in a minute." });
+        }
+
+        res.status(500).json({ error: "AI request failed" });
+    }
 });
 
 app.listen(5000, () => console.log("AI server running on port 5000"));
